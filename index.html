@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<title>2017年中国高校发表SCI论文综合排名报告</title>
+	<link href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+	<script src="https://cdn.bootcss.com/echarts/3.8.5/echarts.min.js"></script>
+	<script src="https://cdn.bootcss.com/lodash.js/4.17.5/lodash.min.js"></script>
+	<script src="https://cdn.bootcss.com/vue/2.5.16/vue.min.js"></script>
+	<script src="https://cdn.bootcss.com/vue-resource/1.5.0/vue-resource.min.js"></script>
+	<style>
+		.container h1 {
+			text-align: center;
+			color: #9E3B4E;
+		}
+
+		.container .chart {
+			margin: 40px auto;
+		}
+
+		.container .table {
+			border: 1px solid #ddd;
+		}
+
+		.container .table th,
+		.container .table td {
+			text-align: center;
+		}
+	</style>
+</head>
+
+<body>
+	<div id="app" class="container">
+		<h1>2017年中国高校发表SCI论文综合排名报告</h1>
+		<!-- 第一类 总发文量排名 -->
+		<div class="col-md-12">
+			<h4 class="page-header">2017年中国高校发表SCI论文数量排名 [Top 100]</h4>
+			<table id="t1" class="table">
+				<tr>
+					<th>排名</th>
+					<th>高校名称</th>
+					<th>发表SCI论文数量</th>
+					<th>排名变化</th>
+					<th>地区</th>
+				</tr>
+				<tr v-for="item in totalRankAll" :key="item.id">
+					<td>{{item.total_rank_2017}}</td>
+					<td>{{item.affilication_cn}}</td>
+					<td>{{item.record_wos_2017}}</td>
+					<td>{{item.rank_diff_num | sign(item.rank_diff)}}</td>
+					<td>{{item.province}}</td>
+				</tr>
+			</table>
+		</div>
+		<div class="col-md-12">
+			<div id="total_rank" class="chart" style="width: 1000px; height:500px;"></div>
+		</div>
+
+
+		<!-- 第二类 JCR分区相关排名 -->
+		<div class="col-md-6">
+			<h4 class="page-header">2017年中国高校发表JCR一区期刊论文数量排名 [Top 50]</h4>
+			<table id="t2" class="table">
+				<tr>
+					<th>排名</th>
+					<th>高校名称</th>
+					<th>JCR一区论文数量*</th>
+					<th>占该高校总发文数的比例</th>
+				</tr>
+				<tr v-for="item in q1RankAll" :key="item.id">
+					<td>{{item.q1_rank}}</td>
+					<td>{{item.affilication_cn}}</td>
+					<td>{{item.q1_num}}</td>
+					<td>{{item.q1_rate_percentage}}</td>
+				</tr>
+			</table>
+			<p>
+				<span>* 统计论文涵盖2017年10月中科院公布的最新JCR期刊分区下的约560本一区期刊。</span>
+			</p>
+			<p>
+				<strong>关于中科院JCR分区：</strong>由于不同学科之间的SCI期刊很难进行比较和评价，中国科学院国家科学图书馆世界科学前沿分析中心（原中国科学院文献情报中心），对目前SCI核心库加上扩展库期刊的影响力等因素，以年度和学科为单位，对SCI期刊进行4个等级的划分。一般而言，发表在1区和2区的SCI论文，通常被认为是该学科领域的比较重要的成果。</p>
+		</div>
+		<div class="col-md-6">
+			<h4 class="page-header">2017年中国高校发表JCR二区期刊论文数量排名 [Top 50]</h4>
+			<table id="t3" class="table">
+				<tr>
+					<th>排名</th>
+					<th>高校名称</th>
+					<th>JCR二区论文数量*</th>
+					<th>占该高校总发文数的比例</th>
+				</tr>
+				<tr v-for="item in q2RankAll" :key="item.id">
+					<td>{{item.q2_rank}}</td>
+					<td>{{item.affilication_cn}}</td>
+					<td>{{item.q2_num}}</td>
+					<td>{{item.q2_rate_percentage}}</td>
+				</tr>
+			</table>
+			<p>
+				<span>* 统计论文涵盖2017年10月中科院公布的最新JCR期刊分区下的约1377本二区期刊。</span>
+			</p>
+		</div>
+		<div class="col-md-12">
+			<div id="q1_rank" class="chart" style="width: 1000px; height:500px;"></div>
+		</div>
+		<div class="col-md-12">
+			<div id="q2_rank" class="chart" style="width: 1000px; height:500px;"></div>
+		</div>
+		<div class="col-md-12">
+			<h4 class="page-header">2017年发文量TOP50高校论文数量分区占比</h4>
+			<table id="t4" class="table">
+				<tr>
+					<th>排名</th>
+					<th>高校名称</th>
+					<th>发文总量</th>
+					<th>JCR一区论文数量</th>
+					<th>JCR二区论文数量</th>
+					<th>JCR三、四区论文数量</th>
+				</tr>
+				<tr v-for="item in JCRPrecentage" :key="item.id">
+					<td>{{item.total_rank_2017}}</td>
+					<td>{{item.affilication_cn}}</td>
+					<td>{{item.record_wos_2017}}</td>
+					<td>{{item.q1_num}}</td>
+					<td>{{item.q2_num}}</td>
+					<td>{{item.q34_num}}</td>
+				</tr>
+			</table>
+		</div>
+		<div class="col-md-12">
+			<div id="jcr_precentage" class="chart" style="width: 1000px; height:500px;"></div>
+		</div>
+
+
+		<!-- 第三类 2016-2017增长率相关排名 -->
+		<div class="col-md-12">
+			<h4 class="page-header">2017年中国高校发表SCI论文增长率排名 [Top 50]</h4>
+			<table id="t5" class="table">
+				<tr>
+					<th>排名*</th>
+					<th>高校名称</th>
+					<th>2017年 / 2016年发文数</th>
+					<th>发文增长数</th>
+					<th>增长率</th>
+				</tr>
+				<tr v-for="item in increaseRank" :key="item.id">
+					<td>{{item.increase_rate_rank}}</td>
+					<td>{{item.affilication_cn}}</td>
+					<td>{{item.record_wos_2017}} / {{item.record_wos_2016}}</td>
+					<td>{{item.increase_num}}</td>
+					<td>{{item.increase_rate_percentage}}</td>
+				</tr>
+			</table>
+			<p>
+				<span>* 增长率排名仅对2017年发文量TOP100的高校进行统计。</span>
+			</p>
+		</div>
+		<div class="col-md-12">
+			<div id="increase_rank" class="chart" style="width: 1000px; height:500px;"></div>
+		</div>
+
+
+		<!-- 第四类 高被引论文排名 -->
+		<div class="col-md-12">
+			<h4 class="page-header">2017年中国高校发表ESI高被引论文数量排名 [Top 30]</h4>
+			<table id="t6" class="table">
+				<tr>
+					<th>排名</th>
+					<th>高校名称</th>
+					<th>ESI高被引论文数</th>
+				</tr>
+				<tr v-for="item in ESIRankAll" :key="item.id">
+					<td>{{item.highly_cited_rank}}</td>
+					<td>{{item.affilication_cn}}</td>
+					<td>{{item.highly_cited_num}}</td>
+				</tr>
+			</table>
+			<p>
+				<strong>关于ESI高被引论文：</strong>根据同一年同一ESI学科统计最近10年发表论文中被引用次数进入世界前1%的论文。ESI（Essential Science Indicators，基本科学指标）是一个深度分析工具，通过分析Web
+				of Science（SCI/SSCI）收录的11000多种期刊的文献及其参考文献，提供各学科的科学家、机构、国家和期刊的排名数据。
+			</p>
+		</div>
+		<div class="col-md-12">
+			<div id="esi_rank" class="chart" style="width: 1000px; height:500px;"></div>
+		</div>
+
+		<!-- End -->
+	</div>
+</body>
+<script>
+	window.onload = function () {
+		const vm = new Vue({
+			el: "#app",
+			data: {
+				dataset: [],
+				totalRankAll: [],
+				totalRank: [],
+				q1RankAll: [],
+				q1Rank: [],
+				q2RankAll: [],
+				q2Rank: [],
+				increaseRank: [],
+				JCRPrecentage: [],
+				ESIRankAll: [],
+				ESIRank: []
+			},
+			filters: {
+				sign(value, sign) {
+					if (sign == "equal") {
+						return "持平";
+					} else if (sign == "increase") {
+						return `+ ${value}`;
+					} else if (sign == "decrease") {
+						return `- ${value}`;
+					}
+				}
+			},
+			methods: {
+				// 初始化所有数据（数据由jsonserver服务端渲染）
+				fetchList() {
+					this.$http.jsonp("http://localhost:3000/data").then((res) => {
+						this.dataset = res.body
+						// 数据异步加载完成后，开始生成可视化图形
+						this.fetchTotalRankAll()
+						this.fetchTotalRank()
+						this.fetchQ1RankAll()
+						this.fetchQ1Rank()
+						this.fetchQ2RankAll()
+						this.fetchQ2Rank()
+						this.fetchIncreaseRank()
+						this.fetchJCRPrecentage()
+						this.fetchESIRankAll()
+						this.fetchESIRank()
+					})
+				},
+
+				// 封装一个处理表格背景的方法
+				makeTableStyle(id, bgcolor) {
+					// if use jquery:
+					// let colorRow = `${selector} tr:even`;
+					// $(colorRow).css('background', bgcolor);
+					let rows = document.getElementById(id).getElementsByTagName("tr");
+					[...rows].map((item, index) => {
+						if (index % 2 == 0) {
+							item.style.backgroundColor = bgcolor;
+						}
+					})
+				},
+
+				// 封装一个数据查询和排序的方法 
+				fetchItem(rank, limit) {
+					// 原始json中的rank字段是字符串，需要转成数值才能正常排序
+					this.dataset.map((item) => {
+						return item[rank] = parseInt(item[rank])
+					})
+					// 按排名升序排序，同时截取前limit个数据
+					return _.sortBy(this.dataset, [rank]).slice(0, limit);
+				},
+
+				// 获取每一类具体数据的方法
+				fetchTotalRankAll() {
+					this.totalRankAll = this.fetchItem("total_rank_2017", 100);
+					// DOM还没更新
+					this.$nextTick(() => {
+						this.makeTableStyle("t1", "#EDF2FA");
+					})
+				},
+				fetchTotalRank() {
+					this.totalRank = this.fetchItem("total_rank_2017", 10);
+					// echarts绘图
+					let myChart = echarts.init(document.getElementById("total_rank"));
+					let axisData = [],
+						seriesData = [];
+					this.totalRank.forEach(item => {
+						axisData.push(item.affilication_cn)
+						seriesData.push(item.record_wos_2017)
+					});
+					let option = {
+						title: {
+							text: "2017年中国高校发表SCI论文数量排名Top10对比图",
+							left: "10%"
+						},
+						tooltip: {},
+						legend: {
+							data: ['2017总发文量'],
+							right: "10%"
+						},
+						xAxis: {
+							data: axisData,
+							axisLabel: {
+								interval: 0,
+								rotate: 30,
+							},
+						},
+						yAxis: {},
+						color: [
+							"#43A0C8"
+						],
+						series: [{
+							name: '2017总发文量',
+							type: 'bar',
+							data: seriesData
+						}]
+					};
+					myChart.setOption(option);
+				},
+				fetchQ1RankAll() {
+					this.q1RankAll = this.fetchItem("q1_rank", 50);
+					this.$nextTick(() => {
+						this.makeTableStyle("t2", "#FCEDCE");
+					})
+				},
+				fetchQ1Rank() {
+					this.q1Rank = this.fetchItem("q1_rank", 10)
+					// echarts绘图
+					let myChart = echarts.init(document.getElementById("q1_rank"));
+					let axisData = [],
+						seriesData = [];
+					this.q1Rank.forEach(item => {
+						axisData.push(item.affilication_cn)
+						seriesData.push(item.q1_num)
+					});
+					let option = {
+						title: {
+							text: "2017年中国高校发表JCR一区期刊论文数量排名Top10对比图",
+							left: "10%"
+						},
+						tooltip: {},
+						legend: {
+							data: ['JCR一区发文量'],
+							right: "10%"
+						},
+						xAxis: {
+							data: axisData,
+							axisLabel: {
+								interval: 0,
+								rotate: 30,
+							},
+						},
+						yAxis: {},
+						color: [
+							"#43A0C8"
+						],
+						series: [{
+							name: 'JCR一区发文量',
+							type: 'bar',
+							data: seriesData
+						}]
+					};
+					myChart.setOption(option);
+				},
+				fetchQ2RankAll() {
+					this.q2RankAll = this.fetchItem("q2_rank", 50);
+					this.$nextTick(() => {
+						this.makeTableStyle("t3", "#FCEDCE");
+					})
+				},
+				fetchQ2Rank() {
+					this.q2Rank = this.fetchItem("q2_rank", 10)
+					// echarts绘图
+					let myChart = echarts.init(document.getElementById("q2_rank"));
+					let axisData = [],
+						seriesData = [];
+					this.q2Rank.forEach(item => {
+						axisData.push(item.affilication_cn)
+						seriesData.push(item.q2_num)
+					});
+					let option = {
+						title: {
+							text: "2017年中国高校发表JCR二区期刊论文数量排名Top10对比图",
+							left: "10%"
+						},
+						tooltip: {},
+						legend: {
+							data: ['JCR二区发文量'],
+							right: "10%"
+						},
+						xAxis: {
+							data: axisData,
+							axisLabel: {
+								interval: 0,
+								rotate: 30,
+							},
+						},
+						yAxis: {},
+						color: [
+							"#43A0C8"
+						],
+						series: [{
+							name: 'JCR二区发文量',
+							type: 'bar',
+							data: seriesData
+						}]
+					};
+					myChart.setOption(option);
+				},
+				fetchIncreaseRank() {
+					this.increaseRank = this.fetchItem("increase_rate_rank", 50)
+					this.$nextTick(() => {
+						this.makeTableStyle("t5", "#EDFFE5");
+					})
+					// echarts绘图
+					let myChart = echarts.init(document.getElementById("increase_rank"));
+					let axisData = [],
+						seriesData = [];
+					this.increaseRank.forEach(item => {
+						axisData.push(item.affilication_cn)
+						seriesData.push(_.round(parseFloat(item.increase_rate) * 100, 1));
+					});
+					let option = {
+						title: {
+							text: "2017年中国高校发表SCI论文增长率排名Top50对比图",
+							left: "10%"
+						},
+						tooltip: {},
+						legend: {
+							data: ['2016-2017发文增长率'],
+							right: "10%"
+						},
+						dataZoom: [{
+							type: "slider",
+							start: 0,
+							end: 40,
+							top: 60,
+							fillerColor: 'rgba(167,183,204,0.6)',
+							// zoomLock: false,
+							height: 15,
+							showDetail: false,
+							handleIcon: 'M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z',
+							handleSize: '100%',
+							handleStyle: {
+								color: '#fff',
+								shadowBlur: 3,
+								shadowColor: 'rgba(0, 0, 0, 0.6)',
+								shadowOffsetX: 2,
+								shadowOffsetY: 2
+							}
+						}],
+						xAxis: {
+							data: axisData,
+							axisLabel: {
+								interval: "auto",
+								rotate: 30,
+							},
+						},
+						yAxis: {
+							axisLabel: {
+								formatter: '{value}%'
+							}
+						},
+						color: [
+							"#43A0C8"
+						],
+						series: [{
+							name: '2016-2017发文增长率',
+							type: 'bar',
+							data: seriesData,
+							tooltip: {
+								formatter: '{a}<br>{b}: {c}%'
+							},
+							markLine: {
+								data: [{
+									type: "average",
+									name: "平均值",
+									label: {
+										show: false
+									}
+								}],
+							}
+						}],
+					};
+					myChart.setOption(option);
+				},
+				fetchJCRPrecentage() {
+					this.JCRPrecentage = this.fetchItem("total_rank_2017", 50)
+					this.$nextTick(() => {
+						this.makeTableStyle("t4", "#FCEDCE");
+					})
+					// echarts绘图
+					let myChart = echarts.init(document.getElementById("jcr_precentage"));
+					let axisData = [],
+						seriesData_Q1 = [],
+						seriesData_Q2 = [],
+						seriesData_Q34 = [];
+					this.JCRPrecentage.forEach(item => {
+						axisData.push(item.affilication_cn)
+						seriesData_Q1.push(item.q1_num)
+						seriesData_Q2.push(item.q2_num)
+						seriesData_Q34.push(item.q34_num)
+					});
+					let option = {
+						title: {
+							text: "2017年发文量TOP50高校论文数量JCR分区占比",
+							left: "10%"
+						},
+						tooltip: {},
+						legend: {
+							data: ['JCR一区发文量', 'JCR二区发文量', 'JCR三、四区发文量'],
+							right: "10%",
+						},
+						xAxis: {
+							data: axisData,
+							axisLabel: {
+								interval: "auto",
+								rotate: 30,
+							},
+						},
+						yAxis: {},
+						color: [
+							"#b35651", "#a2b966", "#7b669e"
+						],
+						dataZoom: [{
+							type: "slider",
+							start: 0,
+							end: 40,
+							top: 60,
+							fillerColor: 'rgba(167,183,204,0.6)',
+							zoomLock: false,
+							height: 15,
+							showDetail: false,
+							handleIcon: 'M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z',
+							handleSize: '100%',
+							handleStyle: {
+								color: '#fff',
+								shadowBlur: 3,
+								shadowColor: 'rgba(0, 0, 0, 0.6)',
+								shadowOffsetX: 2,
+								shadowOffsetY: 2
+							}
+						}],
+						series: [{
+							name: 'JCR一区发文量',
+							type: 'bar',
+							stack: "发文量",
+							data: seriesData_Q1,
+						}, {
+							name: 'JCR二区发文量',
+							type: 'bar',
+							stack: "发文量",
+							data: seriesData_Q2
+						}, {
+							name: 'JCR三、四区发文量',
+							type: 'bar',
+							stack: "发文量",
+							data: seriesData_Q34
+						}]
+					};
+					myChart.setOption(option);
+				},
+				fetchESIRankAll() {
+					this.ESIRankAll = this.fetchItem("highly_cited_rank", 30);
+					this.$nextTick(() => {
+						this.makeTableStyle("t6", "#FFF5FA")
+					})
+				},
+				fetchESIRank() {
+					this.ESIRank = this.fetchItem("highly_cited_rank", 10);
+					// echarts绘图
+					let myChart = echarts.init(document.getElementById("esi_rank"));
+					let axisData = [],
+						seriesData = [];
+					this.ESIRank.forEach(item => {
+						axisData.push(item.affilication_cn)
+						seriesData.push(item.highly_cited_num)
+					});
+					let option = {
+						title: {
+							text: "2017年中国高校发表ESI高被引论文数量排名Top10对比图",
+							left: "10%"
+						},
+						tooltip: {},
+						legend: {
+							data: ['ESI高被引论文数量'],
+							right: "10%"
+						},
+						xAxis: {
+							data: axisData,
+							axisLabel: {
+								interval: 0,
+								rotate: 30,
+							},
+						},
+						yAxis: {},
+						color: [
+							"#43A0C8"
+						],
+						series: [{
+							name: 'ESI高被引论文数量',
+							type: 'bar',
+							data: seriesData
+						}]
+					};
+					myChart.setOption(option);
+				}
+			},
+			mounted() {
+				this.fetchList()
+			}
+		})
+	}
+</script>
+
+</html>
